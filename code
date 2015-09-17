@@ -1,0 +1,595 @@
+
+Public Class frmBlackjack
+    Structure Card
+        Dim num As String
+        Dim value As Integer
+    End Structure
+
+    Structure Player
+        Dim name As String
+        Dim score As Integer
+    End Structure
+    Structure Split
+        Dim firstCard As Card
+        Dim score As Integer
+        Dim numSplits As Integer
+    End Structure
+    'Class declarations
+    Public arrDeck(52) As Card
+    Public arrTopTen(11) As Player
+    Public arrDealer(10) As Card
+    Public arrPlayer(10) As Card
+    Public players As Player
+    Public dealerScore As Integer
+    Public bet As Integer
+    Public turnNum As Integer
+    Public playerTotal As Integer
+    Public dealerTotal As Integer
+    Public doubled As Boolean
+    Public special As Boolean
+    Public endGame As Boolean
+    Public numPCards As Integer
+    Public numDCards As Integer
+    Public numHits As Integer
+    Public blackJack As Boolean
+    Public arrSplits(3) As Split
+    Private Sub btnExit_Click(sender As Object, e As EventArgs) Handles btnExit.Click
+        Me.Close()
+    End Sub
+    Private Sub btnStartGame_Click(sender As Object, e As EventArgs) Handles btnStartGame.Click
+        turnNum = 1
+        Dim temp As Card
+        Dim i As Integer
+        Dim rNum As Integer
+
+        Randomize()
+        'reset
+        ckBoxBet.Checked = False
+        rBtnStand.Checked = False
+        rBtnHit.Checked = False
+        rBtnSplit.Checked = False
+        rBtnDoubleDown.Checked = False
+        rBtnInsurance.Checked = False
+        rBtnSurrender.Checked = False
+        rBtnInsurance.Text = "Insurance"
+        btnStartGame.Enabled = False
+        btnAddScore.Enabled = False
+        rBtnHit.Enabled = True
+        txtDealerTotal.Text = ""
+        txtPlayerTotal.Text = ""
+        dealerTotal = 0
+        turnNum = 1
+        txtBet.Text = ""
+        picDealerCard1.Image = Nothing
+        picDealerCard2.Image = Nothing
+        picDealerCard3.Image = Nothing
+        picDealerCard4.Image = Nothing
+        picDealerCard5.Image = Nothing
+        picDealerCard6.Image = Nothing
+        picDealerCard7.Image = Nothing
+        picDealerCard8.Image = Nothing
+        picPlayerCard1.Image = Nothing
+        picPlayerCard2.Image = Nothing
+        picPlayersCard3.Image = Nothing
+        picPlayersCard4.Image = Nothing
+        picPlayersCard5.Image = Nothing
+        picPlayersCard6.Image = Nothing
+        picPlayersCard7.Image = Nothing
+        picPlayersCard8.Image = Nothing
+        numHits = 0
+        doubled = False
+        special = False
+        txt2Bet.Text = ""
+        rBtnDoubleDown.Enabled = True
+        rBtnSurrender.Enabled = True
+        arrSplits(2).numSplits = 0
+        arrSplits(1).numSplits = 0
+        arrSplits(3).numSplits = 0
+
+        'go through betting process
+        MsgBox("Choose a betting amount.", vbOKOnly, "Instructions")
+        gBoxPlay.Enabled = False
+        gBoxBet.Enabled = True
+
+        'Shuffle the deck
+        For i = 1 To 52
+            rNum = Int(Rnd() * 52) + 1
+            temp = arrDeck(i)
+            arrDeck(i) = arrDeck(rNum)
+            arrDeck(rNum) = temp
+        Next
+        doubled = False
+        btnStartGame.Text = "Start New Round"
+        special = False
+        endGame = False
+        numPCards = 2
+        numDCards = 2
+    End Sub
+
+    Private Sub frmBlackjack_Load(sender As Object, e As EventArgs) Handles MyBase.Load
+        Dim i As Integer
+        'diamonds
+        For i = 1 To 13
+            With arrDeck(i)
+                If i >= 2 And i <= 9 Then
+                    .num = Str(i) + "d"
+                    .value = i
+                ElseIf i = 1 Then
+                    .num = "ad"
+                    .value = 11
+                ElseIf i = 10 Then
+                    .num = "td"
+                    .value = i
+                ElseIf i = 11 Then
+                    .num = "jd"
+                    .value = 10
+                ElseIf i = 12 Then
+                    .num = "qd"
+                    .value = 10
+                ElseIf i = 13 Then
+                    .num = "kd"
+                    .value = 10
+                End If
+            End With
+        Next
+        'hearts
+        For i = 14 To 26
+            With arrDeck(i)
+                If i >= 15 And i <= 22 Then
+                    .num = Str(i - 13) + "h"
+                    .value = i - 13
+                ElseIf i = 14 Then
+                    .num = "ah"
+                    .value = 11
+                ElseIf i = 23 Then
+                    .num = "th"
+                    .value = 10
+                ElseIf i = 24 Then
+                    .num = "jh"
+                    .value = 10
+                ElseIf i = 25 Then
+                    .num = "qh"
+                    .value = 10
+                ElseIf i = 26 Then
+                    .num = "kh"
+                    .value = 10
+                End If
+            End With
+        Next
+        'clubs
+        For i = 27 To 39
+            With arrDeck(i)
+                If i >= 28 And i <= 35 Then
+                    .num = Str(i - 26) + "c"
+                    .value = i - 26
+                ElseIf i = 27 Then
+                    .num = "ac"
+                    .value = 11
+                ElseIf i = 36 Then
+                    .num = "tc"
+                    .value = 10
+                ElseIf i = 37 Then
+                    .num = "jc"
+                    .value = 10
+                ElseIf i = 38 Then
+                    .num = "qc"
+                    .value = 10
+                ElseIf i = 39 Then
+                    .num = "kc"
+                    .value = 10
+                End If
+            End With
+        Next
+        'spades
+        For i = 40 To 52
+            With arrDeck(i)
+                If i >= 41 And i <= 48 Then
+                    .num = Str(i - 39) + "s"
+                    .value = i - 39
+                ElseIf i = 40 Then
+                    .num = "as"
+                    .value = 11
+                ElseIf i = 49 Then
+                    .num = "ts"
+                    .value = 10
+                ElseIf i = 50 Then
+                    .num = "js"
+                    .value = 10
+                ElseIf i = 51 Then
+                    .num = "qs"
+                    .value = 10
+                ElseIf i = 52 Then
+                    .num = "ks"
+                    .value = 10
+                End If
+            End With
+        Next
+
+        'fill players
+        arrTopTen(1).name = "Ian"
+        arrTopTen(1).score = 900
+        arrTopTen(2).name = "Jason"
+        arrTopTen(2).score = 825
+        arrTopTen(3).name = "Niki"
+        arrTopTen(3).score = 800
+        arrTopTen(4).name = "Lisa"
+        arrTopTen(4).score = 750
+        arrTopTen(5).name = "Jon"
+        arrTopTen(5).score = 725
+        arrTopTen(6).name = "Emily"
+        arrTopTen(6).score = 675
+        arrTopTen(7).name = "Joshua"
+        arrTopTen(7).score = 625
+        arrTopTen(8).name = "Ramya"
+        arrTopTen(8).score = 600
+        arrTopTen(9).name = "Mike"
+        arrTopTen(9).score = 500
+        arrTopTen(10).name = "Ed"
+        arrTopTen(10).score = 450
+        For i = 1 To 10
+            lstTopTen.Items.Add(arrTopTen(i).name + "   " + Str(arrTopTen(i).score))
+        Next
+
+        players.name = Trim(InputBox("What's your name?", "Name"))
+        lblPlayer.Text = players.name
+        players.score = 500
+        dealerScore = 500
+        arrSplits(1).numSplits = 0
+    End Sub
+
+    Private Sub ckBoxBet_CheckedChanged(sender As Object, e As EventArgs) Handles ckBoxBet.Click
+        If ckBoxBet.Checked = True Then
+            If rBtn25.Checked = True Then
+                bet = 25
+            ElseIf rBtn50.Checked = True Then
+                bet = 50
+            ElseIf rBtn100.Checked = True Then
+                bet = 100
+            ElseIf rBtn200.Checked = True Then
+                bet = 200
+            ElseIf rBtn500.Checked = True Then
+                bet = 500
+            End If
+            txtBet.Text = "$" + Trim(Str(bet))
+        End If
+        gBoxBet.Enabled = False
+        'Deal the cards
+        arrPlayer(1) = arrDeck(1)
+        arrPlayer(2) = arrDeck(3)
+        arrDealer(1) = arrDeck(2)
+        arrDealer(2) = arrDeck(4)
+        'At school use E at home F
+        picPlayerCard1.Image = Image.FromFile("F:\CP 2\net\cardimages\" + Trim(arrPlayer(1).num) + ".gif")
+        picDealerCard1.Image = Image.FromFile("F:\CP 2\net\cardimages\" + Trim(arrDealer(1).num) + ".gif")
+        picPlayerCard2.Image = Image.FromFile("F:\CP 2\net\cardimages\" + Trim(arrPlayer(2).num) + ".gif")
+        picDealerCard2.Image = Image.FromFile("F:\CP 2\net\cardimages\cb.png")
+        'check scores
+        playerTotal = arrPlayer(1).value + arrPlayer(2).value
+        If playerTotal = 21 Then
+            blackJack = True
+            bet = bet * 1.5
+        ElseIf playerTotal > 21 Then
+            For i = 1 To 2
+                If Mid(arrPlayer(i).num, 1, 1) = "a" And arrPlayer(i).value = 11 Then
+                    arrPlayer(i).value = 1
+                    playerTotal = playerTotal - 10
+                    Exit For
+                End If
+            Next i
+        End If
+        dealerTotal = arrDealer(1).value + arrDealer(2).value
+        txtPlayerTotal.Text = Str(playerTotal)
+        'Check the card totals for special circumstances
+        If arrPlayer(1).value = arrPlayer(2).value Then
+            rBtnSplit.Enabled = True
+        Else
+            rBtnSplit.Enabled = False
+        End If
+        If arrPlayer(1).value = 11 And arrPlayer(2).value = 11 Then
+            arrPlayer(1).value = 1
+        End If
+        If arrDealer(1).value = 11 Then
+            If playerTotal = 21 Then
+                rBtnInsurance.Text = "Even Money"
+                rBtnInsurance.Enabled = True
+            Else
+                rBtnInsurance.Enabled = True
+            End If
+        Else
+            rBtnInsurance.Enabled = False
+        End If
+        If dealerTotal = 21 Then
+            rBtnSurrender.Enabled = False
+        End If
+        If arrDealer(1).value = 11 And arrDealer(2).value = 11 Then
+            arrDealer(1).value = 1
+        End If
+        'prepare to actually play
+        gBoxPlay.Enabled = True
+        MsgBox("Your turn!", vbOKOnly, "Instructions")
+    End Sub
+
+    Private Sub ckBoxPlay_Click(sender As Object, e As EventArgs) Handles ckBoxPlay.Click
+        If rBtnStand.Checked = True Then
+            dealersTurn()
+        ElseIf rBtnSurrender.Checked = True Then
+            playerTotal = 0
+            txtPlayerTotal.Text = Str(playerTotal)
+            bet = bet / 2
+            txtBet.Text = "$" + Trim(Str(bet))
+            special = True
+            dealersTurn()
+        ElseIf rBtnDoubleDown.Checked = True Then
+            doubled = True
+            bet = bet * 2
+            txt2Bet.Text = "$" + Trim(Str(bet / 2))
+            rBtnDoubleDown.Enabled = False
+            rBtnInsurance.Enabled = False
+            rBtnSplit.Enabled = False
+            rBtnSurrender.Enabled = False
+            rBtnHit.Enabled = False
+            Hit()
+        ElseIf rBtnInsurance.Checked = True Then
+            txt2Bet.Text = "$" + Str(bet / 2)
+            rBtnDoubleDown.Enabled = False
+            rBtnInsurance.Enabled = False
+            rBtnSplit.Enabled = False
+            rBtnSurrender.Enabled = False
+            If playerTotal = 21 Then
+                special = True
+                dealersTurn()
+            Else
+                If dealerTotal = 21 Then
+                    special = True
+                    MsgBox("You won the bet", vbOKOnly, "Insurance")
+                    dealersTurn()
+                Else
+                    dealerScore = dealerScore + (bet / 2)
+                    lblDealersScore.Text = "Score: " + Str(dealerScore)
+                    MsgBox("You lost the bet", vbOKOnly, "Insurance")
+                End If
+            End If
+        ElseIf rBtnHit.Checked = True Then
+            rBtnDoubleDown.Enabled = False
+            rBtnHit.Enabled = False
+            Hit()
+        ElseIf rBtnSplit.Checked = True Then
+            splitHand()
+        End If
+        rBtnSurrender.Enabled = False
+        rBtnInsurance.Enabled = False
+        turnNum += turnNum
+    End Sub
+
+    Private Sub dealersTurn()
+        Dim i As Integer
+        If arrSplits(1).numSplits = 1 And arrSplits(2).numSplits = 0 Then
+            splitHand2()
+            Exit Sub
+        End If
+        If arrSplits(1).numSplits = 0 Or arrSplits(2).numSplits = 1 Then
+            gBoxPlay.Enabled = False
+            picDealerCard2.Image = Image.FromFile("F:\CP 2\net\cardimages\" + Trim(arrDealer(2).num) + ".gif")
+            txtDealerTotal.Text = Str(dealerTotal)
+            btnStartGame.Enabled = True
+            Do
+                If special = True Then
+                    endGame = True
+                    players.score = players.score + bet
+                    lblPlayersScore.Text = "Score: " + Trim(Str(players.score))
+                    dealerScore = dealerScore - bet
+                    lblDealersScore.Text = "Score: " + Trim(Str(dealerScore))
+                ElseIf dealerTotal < 17 Then
+                    picDealerCard3.Image = Image.FromFile("F:\CP 2\net\cardimages\" + Trim(arrDeck(numHits + 5).num) + ".gif")
+                    dealerTotal = dealerTotal + arrDeck(numHits + 5).value
+                    txtDealerTotal.Text = Str(dealerTotal)
+                    numDCards += 1
+                    With arrDealer(numDCards)
+                        .value = arrDeck(numHits + 5).value
+                        .num = arrDeck(numHits + 5).value
+                    End With
+                    numHits = numHits + 1
+                ElseIf dealerTotal >= 17 And dealerTotal <= 21 Then
+                    endGame = True
+                ElseIf dealerTotal > 21 Then
+                    For i = 1 To numDCards
+                        If Mid(arrDealer(i).num, 1, 1) = "a" Then
+                            arrDealer(i).value = 1
+                            dealerTotal = dealerTotal - 10
+                            txtDealerTotal.Text = Str(dealerTotal)
+                            endGame = False
+                            Exit For
+                        Else
+                            endGame = True
+                        End If
+                    Next
+                End If
+            Loop While endGame = False
+            CompareScores()
+        End If
+    End Sub
+    Private Sub CompareScores()
+        btnAddScore.Enabled = True
+        If arrSplits(2).numSplits = 1 Then
+            MsgBox("Outcome for hand two", vbOKOnly, "Instructions")
+        End If
+        If special = True Then
+            MsgBox("Game Over", vbOKOnly, "Game Over")
+        ElseIf blackJack = True Then
+            If dealerTotal = 21 And numHits = 0 Then
+                MsgBox("Push", vbOKOnly, "Game Over")
+            Else
+                players.score = players.score + bet
+                lblPlayersScore.Text = "Score: " + Trim(Str(players.score))
+                dealerScore = dealerScore - bet
+                lblDealersScore.Text = "Score: " + Trim(Str(dealerScore))
+                MsgBox("You Win!", vbOKOnly, "End Game")
+            End If
+        ElseIf numHits = 5 Then
+            players.score = players.score + bet
+            lblPlayersScore.Text = "Score: " + Trim(Str(players.score))
+            dealerScore = dealerScore - bet
+            lblDealersScore.Text = "Score: " + Trim(Str(dealerScore))
+            MsgBox("You Win!", vbOKOnly, "End Game")
+        ElseIf dealerTotal > 21 Then
+            If playerTotal > 21 Then
+                MsgBox("Push", vbOKOnly, "Game Over")
+            Else
+                players.score = players.score + bet
+                lblPlayersScore.Text = "Score: " + Trim(Str(players.score))
+                dealerScore = dealerScore - bet
+                lblDealersScore.Text = "Score: " + Trim(Str(dealerScore))
+                MsgBox("You Win!", vbOKOnly, "End Game")
+            End If
+        Else
+            If playerTotal > 21 Then
+                dealerScore += bet
+                lblDealersScore.Text = "Score: " + Trim(Str(dealerScore))
+                players.score = players.score - bet
+                lblPlayersScore.Text = "Score: " + Trim(Str(players.score))
+                MsgBox("You lose.", vbOKOnly, "End Game")
+            ElseIf playerTotal < dealerTotal Then
+                dealerScore += bet
+                lblDealersScore.Text = "Score: " + Trim(Str(dealerScore))
+                players.score = players.score - bet
+                lblPlayersScore.Text = "Score: " + Trim(Str(players.score))
+                MsgBox("You lose.", vbOKOnly, "End Game")
+            ElseIf playerTotal = dealerTotal Then
+                If dealerTotal = 21 And dealerTotal = arrDealer(1).value + arrDealer(2).value Then
+                    dealerScore += bet
+                    lblDealersScore.Text = "Score: " + Trim(Str(dealerScore))
+                    players.score = players.score - bet
+                    lblPlayersScore.Text = "Score: " + Trim(Str(players.score))
+                    MsgBox("You lose.", vbOKOnly, "End Game")
+                Else
+                    MsgBox("Push", vbOKOnly, "Game Over")
+                End If
+            ElseIf playerTotal > dealerTotal Then
+                players.score = players.score + bet
+                lblPlayersScore.Text = "Score: " + Trim(Str(players.score))
+                dealerScore = dealerScore - bet
+                lblDealersScore.Text = "Score: " + Trim(Str(dealerScore))
+                MsgBox("You Win!", vbOKOnly, "End Game")
+            End If
+        End If
+        If arrSplits(2).numSplits = 1 Then
+            splitHand3()
+        End If
+    End Sub
+    Private Sub Hit()
+        Dim i As Integer
+        arrPlayer(numHits + 3) = arrDeck(numHits + 5)
+        If numHits + 3 = 3 Then
+            picPlayersCard3.Image = Image.FromFile("F:\CP 2\net\cardimages\" + Trim(arrPlayer(3).num) + ".gif")
+        ElseIf numHits + 3 = 4 Then
+            picPlayersCard4.Image = Image.FromFile("F:\CP 2\net\cardimages\" + Trim(arrPlayer(4).num) + ".gif")
+        ElseIf numHits + 3 = 5 Then
+            picPlayersCard5.Image = Image.FromFile("F:\CP 2\net\cardimages\" + Trim(arrPlayer(5).num) + ".gif")
+        ElseIf numHits + 3 = 6 Then
+            picPlayersCard6.Image = Image.FromFile("F:\CP 2\net\cardimages\" + Trim(arrPlayer(6).num) + ".gif")
+        ElseIf numHits + 3 = 7 Then
+            picPlayersCard7.Image = Image.FromFile("F:\CP 2\net\cardimages\" + Trim(arrPlayer(7).num) + ".gif")
+        ElseIf numHits + 3 = 8 Then
+            picPlayersCard8.Image = Image.FromFile("F:\CP 2\net\cardimages\" + Trim(arrPlayer(8).num) + ".gif")
+        End If
+        playerTotal = playerTotal + arrPlayer(numHits + 3).value
+        txtPlayerTotal.Text = Str(playerTotal)
+        If playerTotal > 21 Then
+            For i = 1 To numHits + 3
+                If Mid(arrPlayer(i).num, 1, 1) = "a" And arrPlayer(i).value = 11 Then
+                    arrPlayer(i).value = 1
+                    playerTotal = playerTotal - 10
+                    Exit For
+                End If
+                If i = numHits + 3 Then
+                    MsgBox("Bust", vbOKOnly, "Bust")
+                    txtPlayerTotal.Text = Str(playerTotal)
+                    dealersTurn()
+                End If
+            Next
+        End If
+        txtPlayerTotal.Text = Str(playerTotal)
+        numHits = numHits + 1
+        If numHits = 5 And playerTotal <= 21 Then
+            dealersTurn()
+        End If
+    End Sub
+
+    Private Sub btnAddScore_Click(sender As Object, e As EventArgs) Handles btnAddScore.Click
+        Dim f As Integer
+        Dim b As Integer
+        Dim i As Integer
+        Dim temp As Player
+        Dim swap As Boolean
+
+        If players.score > arrTopTen(10).score Then
+            arrTopTen(11) = players
+            lstTopTen.Items.Clear()
+            b = 10
+            Do
+                swap = False
+                For f = 1 To b
+                    If arrTopTen(f).score < arrTopTen(f + 1).score Then
+                        temp = arrTopTen(f)
+                        arrTopTen(f) = arrTopTen(f + 1)
+                        arrTopTen(f + 1) = temp
+                        swap = True
+                    End If
+                Next f
+                b = b - 1
+            Loop Until Not swap
+            For i = 1 To 10
+                lstTopTen.Items.Add(arrTopTen(i).name + "    " + Str(arrTopTen(i).score))
+            Next
+        Else
+            MsgBox("Sorry you didn't make the top ten.", vbOKOnly, "Top Ten")
+        End If
+    End Sub
+    Private Sub splitHand()
+        arrSplits(1).numSplits = 1
+        arrSplits(1).firstCard = arrPlayer(1)
+        arrSplits(1).numSplits = 1
+        arrSplits(2).firstCard = arrPlayer(2)
+        arrPlayer(2) = arrDeck(5)
+        arrSplits(3).firstCard = arrDeck(6)
+        picPlayerCard2.Image = Image.FromFile("E:\CP 2\net\cardimages\" + Trim(arrPlayer(2).num) + ".gif")
+        playerTotal = arrPlayer(1).value + arrPlayer(2).value
+        txtPlayerTotal.Text = Str(playerTotal)
+        MsgBox("Hand one", vbOKOnly, "Instructions")
+        rBtnSplit.Enabled = False
+    End Sub
+    Private Sub splitHand2()
+        arrSplits(2).numSplits = 1
+        arrSplits(2).numSplits = 1
+        arrSplits(1).score = playerTotal
+        picPlayerCard1.Image = Nothing
+        picPlayerCard2.Image = Nothing
+        picPlayersCard3.Image = Nothing
+        picPlayersCard4.Image = Nothing
+        picPlayersCard5.Image = Nothing
+        picPlayersCard6.Image = Nothing
+        picPlayersCard7.Image = Nothing
+        picPlayersCard8.Image = Nothing
+        picPlayerCard1.Image = Image.FromFile("E:\CP 2\net\cardimages\" + Trim(arrSplits(2).firstCard.num) + ".gif")
+        picPlayerCard2.Image = Image.FromFile("E:\CP 2\net\cardimages\" + Trim(arrSplits(3).firstCard.num) + ".gif")
+        arrPlayer(1) = arrSplits(2).firstCard
+        arrPlayer(2) = arrSplits(3).firstCard
+        playerTotal = arrPlayer(1).value + arrPlayer(2).value
+        txtPlayerTotal.Text = Str(playerTotal)
+        MsgBox("Hand two", vbOKOnly, "Instructions")
+        rBtnDoubleDown.Enabled = True
+    End Sub
+    Private Sub splitHand3()
+        arrSplits(2).score = playerTotal
+        playerTotal = arrSplits(1).score
+        txtPlayerTotal.Text = Str(playerTotal)
+        arrSplits(2).numSplits = 0
+        MsgBox("Outcome for hand one", vbOKOnly, "Instructions")
+        CompareScores()
+    End Sub
+End Class
+
+
+
+
+
